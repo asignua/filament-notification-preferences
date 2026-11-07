@@ -97,7 +97,8 @@ class NotificationPreferencesPlugin implements Plugin
             $panel->pages([NotificationPreferencesPage::class]);
         }
 
-        if ($this->userMenu !== false) {
+        // The link points at the page: with `->withoutPage()` its route does not exist and every panel page would fail.
+        if ($this->hasPage && $this->userMenu !== false) {
             $panel->userMenuItems([
                 'notification-preferences' => Action::make('notification-preferences')
                     ->label(fn (): string => is_string($this->userMenu) ? $this->userMenu : __('filament-notification-preferences::filament-notification-preferences.page.title'))

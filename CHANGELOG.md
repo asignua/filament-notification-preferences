@@ -9,6 +9,7 @@ All notable changes to `asignua/filament-notification-preferences` are documente
   `NotificationSending` listener that honours the choice at sending time (queued notifications included), fail-open for
   undeclared types, anonymous recipients and read errors, `NotificationPreferences::for($user)->allows()`, a `canManageNotificationPreferences`
   gate, a per-recipient cache with invalidation, Octane-safe scoped state, ten languages.
+- `->userMenu()` adds no link with `->withoutPage()`: its route does not exist there.
 - Fixes after review: the page slug follows the panel it is asked for (`->slug()`); the user-menu link is hidden on a tenant panel without a
   tenant; a versioned cache key stops a late reader from restoring an answer a save already replaced; type keys that equal another type's
   class name, and unlocked types for subclasses of locked ones, are refused at `register()`; `via()` returning `MailChannel::class` (or the

@@ -43,6 +43,16 @@ class PanelScopeTest extends TestCase
         $this->assertTrue($this->menuItem(Filament::getPanel('admin'))->isVisible());
     }
 
+    public function test_there_is_no_user_menu_link_without_the_page(): void
+    {
+        $panel = Panel::make()->id('headless')->path('headless')
+            ->plugin(NotificationPreferencesPlugin::make()->userMenu()->withoutPage());
+
+        $groups = (new ReflectionProperty($panel, 'userMenuItemGroups'))->getValue($panel);
+
+        $this->assertNull(collect($groups)->collapse()->get('notification-preferences'));
+    }
+
     private function menuItem(Panel $panel): Action
     {
         // Read the declared item itself: getUserMenuItems() would also build the logout URL, whose route a bare test panel lacks.
