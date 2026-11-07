@@ -29,7 +29,8 @@ final class UserPreferences
     public function allows(string|object $type, string $channel): bool
     {
         try {
-            $declared = $this->types->find(is_object($type) ? $type::class : $type);
+            // An object is a notification: only its class (or the nearest declared parent) can name its type, never a key.
+            $declared = is_object($type) ? $this->types->resolveClass($type::class) : $this->types->find($type);
 
             if ($declared === null || $declared->isLocked() || !$declared->offers($channel)) {
                 return true;

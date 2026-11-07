@@ -34,11 +34,42 @@ final class TypeRegistry
                 throw new InvalidArgumentException('The notification class ['.$type->getClass().'] is already registered under the key ['.$this->byClass[$type->getClass()]->getKey().'].');
             }
 
+            $this->guardAmbiguity($type, $key);
+
             $this->byKey[$key] = $type;
             $this->byClass[$type->getClass()] = $type;
         }
 
         $this->resolved = [];
+    }
+
+    /**
+     * A key that is another type's class name (or the reverse) would make one string name two types, and a type
+     * for a subclass of a locked notification, left unlocked, would let the subclass be switched off.
+     */
+    private function guardAmbiguity(NotificationType $type, string $key): void
+    {
+        foreach ($this->byKey as $otherKey => $other) {
+            if ($other === $type) {
+                continue;
+            }
+
+            if ($key === $other->getClass() || $otherKey === $type->getClass()) {
+                throw new InvalidArgumentException("The notification type key [{$key}] clashes with the class name of the type [{$otherKey}] (or the reverse): a string would name two types. Give one of them another ->key().");
+            }
+
+            if (is_subclass_of($type->getClass(), $other->getClass())) {
+                [$parent, $child] = [$other, $type];
+            } elseif (is_subclass_of($other->getClass(), $type->getClass())) {
+                [$parent, $child] = [$type, $other];
+            } else {
+                continue;
+            }
+
+            if ($parent->isLocked() && !$child->isLocked()) {
+                throw new InvalidArgumentException('The notification class ['.$child->getClass().'] extends the locked ['.$parent->getClass().'] and would be left switchable: lock it too, or do not declare it (it then follows its parent).');
+            }
+        }
     }
 
     /**

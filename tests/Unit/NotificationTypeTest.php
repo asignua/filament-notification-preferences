@@ -9,7 +9,9 @@ use Asignua\FilamentNotificationPreferences\Support\TypeRegistry;
 use Asignua\FilamentNotificationPreferences\Tests\TestCase;
 use InvalidArgumentException;
 use Workbench\App\Notifications\NewComment;
+use Workbench\App\Notifications\SecurityAlert;
 use Workbench\App\Notifications\UrgentNewComment;
+use Workbench\App\Notifications\UrgentSecurityAlert;
 
 class NotificationTypeTest extends TestCase
 {
@@ -133,5 +135,54 @@ class NotificationTypeTest extends TestCase
         $registry->register(NotificationType::make(NewComment::class));
 
         $this->assertNotNull($registry->find(UrgentNewComment::class));
+    }
+
+    public function test_a_key_equal_to_the_class_of_another_type_is_refused(): void
+    {
+        $registry = new TypeRegistry;
+        $registry->register(NotificationType::make(SecurityAlert::class)->key('security.alert')->locked());
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $registry->register(NotificationType::make(NewComment::class)->key(SecurityAlert::class));
+    }
+
+    public function test_a_class_equal_to_the_key_of_another_type_is_refused(): void
+    {
+        $registry = new TypeRegistry;
+        $registry->register(NotificationType::make(NewComment::class)->key(SecurityAlert::class));
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $registry->register(NotificationType::make(SecurityAlert::class)->key('security.alert')->locked());
+    }
+
+    public function test_an_unlocked_type_for_a_subclass_of_a_locked_one_is_refused_in_either_order(): void
+    {
+        $registry = new TypeRegistry;
+        $registry->register(NotificationType::make(SecurityAlert::class)->key('security.alert')->locked());
+
+        try {
+            $registry->register(NotificationType::make(UrgentSecurityAlert::class)->key('security.urgent'));
+            $this->fail('A subclass of a locked notification was registered unlocked.');
+        } catch (InvalidArgumentException) {
+            $this->assertNull($registry->find('security.urgent'));
+        }
+
+        $other = new TypeRegistry;
+        $other->register(NotificationType::make(UrgentSecurityAlert::class)->key('security.urgent'));
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $other->register(NotificationType::make(SecurityAlert::class)->key('security.alert')->locked());
+    }
+
+    public function test_a_locked_subclass_of_a_locked_type_is_fine(): void
+    {
+        $registry = new TypeRegistry;
+        $registry->register(NotificationType::make(SecurityAlert::class)->key('security.alert')->locked());
+        $registry->register(NotificationType::make(UrgentSecurityAlert::class)->key('security.urgent')->locked());
+
+        $this->assertCount(2, $registry->all());
     }
 }
