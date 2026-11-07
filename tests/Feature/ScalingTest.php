@@ -9,6 +9,7 @@ use Asignua\FilamentNotificationPreferences\Support\PreferenceStore;
 use Asignua\FilamentNotificationPreferences\Tests\Support\Sandbox;
 use Asignua\FilamentNotificationPreferences\Tests\TestCase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Workbench\App\Notifications\InvoicePaid;
 use Workbench\App\Notifications\NewComment;
@@ -56,6 +57,30 @@ class ScalingTest extends TestCase
 
         $this->assertFalse(NotificationPreferences::for($users[0])->allows(NewComment::class, 'mail'));
         $this->assertTrue(NotificationPreferences::for($users[1])->allows(NewComment::class, 'mail'));
+    }
+
+    public function test_a_reader_that_loaded_before_a_save_cannot_put_the_old_answer_back_after_it(): void
+    {
+        config(['cache.stores.shared' => ['driver' => 'file', 'path' => storage_path('framework/cache/npref-'.uniqid())]]);
+        config(['filament-notification-preferences.cache.store' => 'shared']);
+
+        $user = $this->makeUser();
+        $writing = false;
+        $table = (string) config('filament-notification-preferences.table');
+
+        // The reader has just read the OLD rows; before it caches them, another process saves and invalidates.
+        DB::listen(function ($query) use (&$writing, $user, $table): void {
+            if (!$writing && str_starts_with(ltrim($query->sql), 'select') && str_contains($query->sql, $table)) {
+                $writing = true;
+                NotificationPreferences::for($user)->save(['comments.new' => ['mail' => false]]);
+            }
+        });
+
+        $reader = new PreferenceStore;
+        $this->assertSame([], $reader->stored($user));
+
+        $this->assertFalse((new PreferenceStore)->stored($user) === [], 'the old answer was cached after the save');
+        $this->assertFalse(NotificationPreferences::for($user)->allows('comments.new', 'mail'));
     }
 
     public function test_a_per_process_cache_store_is_never_used(): void

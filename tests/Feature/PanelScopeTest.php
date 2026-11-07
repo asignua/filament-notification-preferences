@@ -8,8 +8,10 @@ use Asignua\FilamentNotificationPreferences\NotificationPreferencesPlugin;
 use Asignua\FilamentNotificationPreferences\Pages\NotificationPreferencesPage;
 use Asignua\FilamentNotificationPreferences\Tests\Support\Sandbox;
 use Asignua\FilamentNotificationPreferences\Tests\TestCase;
+use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Panel;
+use ReflectionProperty;
 use Workbench\App\Models\User;
 
 class PanelScopeTest extends TestCase
@@ -33,11 +35,19 @@ class PanelScopeTest extends TestCase
         Filament::setCurrentPanel($panel);
         Filament::setTenant(null, true);
 
-        $this->assertArrayNotHasKey('notification-preferences', $panel->getUserMenuItems());
+        $this->assertFalse($this->menuItem($panel)->isVisible());
     }
 
     public function test_the_user_menu_link_shows_on_a_panel_without_tenancy(): void
     {
-        $this->assertArrayHasKey('notification-preferences', Filament::getPanel('admin')->getUserMenuItems());
+        $this->assertTrue($this->menuItem(Filament::getPanel('admin'))->isVisible());
+    }
+
+    private function menuItem(Panel $panel): Action
+    {
+        // Read the declared item itself: getUserMenuItems() would also build the logout URL, whose route a bare test panel lacks.
+        $groups = (new ReflectionProperty($panel, 'userMenuItemGroups'))->getValue($panel);
+
+        return collect($groups)->collapse()->get('notification-preferences');
     }
 }

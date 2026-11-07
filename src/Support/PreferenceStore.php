@@ -8,6 +8,8 @@ use Asignua\FilamentNotificationPreferences\Models\NotificationPreference;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -90,7 +92,9 @@ final class PreferenceStore
 
         if ($store !== null) {
             try {
-                $store->forget(self::cacheKey($identity));
+                // A new version, not a delete: a reader that already read the old rows will put them under the OLD
+                // version key, which nobody reads any more. A plain forget() let that late put win for the whole TTL.
+                $store->forever(self::versionKey($identity), Str::random(16));
             } catch (Throwable $e) {
                 // A cache that cannot be cleared must not fail the save; the entry expires with its TTL.
                 report($e);
@@ -109,11 +113,15 @@ final class PreferenceStore
             return $this->query($notifiable);
         }
 
+        // The version is read BEFORE the query: whatever is stored below belongs to the state that version guards.
         try {
-            $cached = $store->get(self::cacheKey($identity));
+            $version = self::version($store, $identity);
+            $key = self::cacheKey($identity, $version);
+            $cached = $store->get($key);
         } catch (Throwable $e) {
             report($e);
-            $cached = null;
+
+            return $this->query($notifiable);
         }
 
         if (is_array($cached)) {
@@ -124,7 +132,7 @@ final class PreferenceStore
         $stored = $this->query($notifiable);
 
         try {
-            $store->put(self::cacheKey($identity), $stored, max(1, (int) config('filament-notification-preferences.cache.ttl', 3600)));
+            $store->put($key, $stored, max(1, (int) config('filament-notification-preferences.cache.ttl', 3600)));
         } catch (Throwable $e) {
             report($e);
         }
@@ -156,9 +164,34 @@ final class PreferenceStore
         return $notifiable->getMorphClass().'|'.$notifiable->getKey();
     }
 
-    private static function cacheKey(string $identity): string
+    private static function cacheKey(string $identity, string $version): string
     {
-        return 'filament-notification-preferences:'.sha1($identity);
+        return 'filament-notification-preferences:'.sha1($identity).':'.$version;
+    }
+
+    private static function versionKey(string $identity): string
+    {
+        return 'filament-notification-preferences:version:'.sha1($identity);
+    }
+
+    /**
+     * The current version of a recipient's entry; created (atomically, first writer wins) when absent or evicted.
+     */
+    private static function version(Repository $store, string $identity): string
+    {
+        $key = self::versionKey($identity);
+        $version = $store->get($key);
+
+        if (!is_string($version) || $version === '') {
+            $store->add($key, Str::random(16));
+            $version = $store->get($key);
+        }
+
+        if (!is_string($version) || $version === '') {
+            throw new RuntimeException('The cache cannot hold the version of the preferences entry.');
+        }
+
+        return $version;
     }
 
     /**
