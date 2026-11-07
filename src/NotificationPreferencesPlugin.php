@@ -103,7 +103,7 @@ class NotificationPreferencesPlugin implements Plugin
                     ->label(fn (): string => is_string($this->userMenu) ? $this->userMenu : __('filament-notification-preferences::filament-notification-preferences.page.title'))
                     ->icon($this->navigationIcon)
                     ->url(fn (): string => NotificationPreferencesPage::getUrl(panel: $panel->getId()))
-                    ->visible(fn (): bool => $this->canManage(static::currentUser())),
+                    ->visible(fn (): bool => (!$panel->hasTenancy() || Filament::getTenant() !== null) && $this->canManage(static::currentUser())),
             ]);
         }
     }
