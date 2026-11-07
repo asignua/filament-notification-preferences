@@ -17,7 +17,7 @@ class NotificationPreferencesPage extends Page
 
     public static function getSlug(?Panel $panel = null): string
     {
-        return NotificationPreferencesPlugin::resolve()->getSlug();
+        return NotificationPreferencesPlugin::resolve($panel)->getSlug();
     }
 
     public static function canAccess(): bool

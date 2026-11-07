@@ -67,12 +67,12 @@ class NotificationPreferencesPlugin implements Plugin
     }
 
     /**
-     * The plugin of the current panel when it has one, otherwise a bare instance with the defaults (a Livewire
+     * The plugin of the given (default: current) panel when it has one, otherwise a bare instance with the defaults (a Livewire
      * component embedded in a page of a panel that did not register the plugin).
      */
-    public static function resolve(): static
+    public static function resolve(?Panel $panel = null): static
     {
-        $panel = Filament::getCurrentPanel();
+        $panel ??= Filament::getCurrentPanel();
 
         if ($panel !== null && $panel->hasPlugin(static::ID)) {
             /** @var static */
