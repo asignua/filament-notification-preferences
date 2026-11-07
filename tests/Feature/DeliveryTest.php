@@ -9,6 +9,9 @@ use Asignua\FilamentNotificationPreferences\NotificationPreferences;
 use Asignua\FilamentNotificationPreferences\Tests\Support\Sandbox;
 use Asignua\FilamentNotificationPreferences\Tests\Support\ThrowingPreference;
 use Asignua\FilamentNotificationPreferences\Tests\TestCase;
+use Illuminate\Notifications\Channels\BroadcastChannel;
+use Illuminate\Notifications\Channels\DatabaseChannel;
+use Illuminate\Notifications\Channels\MailChannel;
 use Illuminate\Support\Facades\Notification;
 use Workbench\App\Notifications\InvoicePaid;
 use Workbench\App\Notifications\MentionedYou;
@@ -113,6 +116,18 @@ class DeliveryTest extends TestCase
         $this->assertSame(1, $this->inAppCount($user));
         $this->assertSame(1, $this->sentMailCount());
         $this->assertTrue(NotificationPreferences::for($user)->allows(SecurityAlert::class, 'mail'));
+    }
+
+    public function test_a_built_in_channel_given_as_its_class_follows_the_choice_made_for_its_name(): void
+    {
+        $user = $this->makeUser();
+        NotificationPreferences::for($user)->save(['comments.new' => ['mail' => false, 'database' => false]]);
+
+        $preferences = NotificationPreferences::for($user);
+
+        $this->assertFalse($preferences->allows(NewComment::class, MailChannel::class));
+        $this->assertFalse($preferences->allows(NewComment::class, DatabaseChannel::class));
+        $this->assertTrue($preferences->allows(NewComment::class, BroadcastChannel::class));
     }
 
     public function test_a_notification_nobody_declared_is_always_sent(): void

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Asignua\FilamentNotificationPreferences\Support;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Channels\BroadcastChannel;
+use Illuminate\Notifications\Channels\DatabaseChannel;
+use Illuminate\Notifications\Channels\MailChannel;
 use Throwable;
 
 /**
@@ -12,6 +15,13 @@ use Throwable;
  */
 final class UserPreferences
 {
+    /** @var array<string, string> the framework's channel classes => the name stored for them */
+    private const array BUILT_IN_CLASSES = [
+        MailChannel::class => 'mail',
+        DatabaseChannel::class => 'database',
+        BroadcastChannel::class => 'broadcast',
+    ];
+
     public function __construct(
         private readonly Model $notifiable,
         private readonly TypeRegistry $types,
@@ -31,6 +41,11 @@ final class UserPreferences
         try {
             // An object is a notification: only its class (or the nearest declared parent) can name its type, never a key.
             $declared = is_object($type) ? $this->types->resolveClass($type::class) : $this->types->find($type);
+
+            if ($declared !== null && !$declared->offers($channel)) {
+                // `via()` may return a built-in channel as its class: it is the channel of that name.
+                $channel = self::BUILT_IN_CLASSES[$channel] ?? $channel;
+            }
 
             if ($declared === null || $declared->isLocked() || !$declared->offers($channel)) {
                 return true;
