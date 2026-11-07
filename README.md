@@ -150,6 +150,10 @@ Use that only when "all in-app panel messages" is a choice you want to give. Oth
   table by hand takes up to the TTL to show up; call `NotificationPreferences::for($user)->forget()` after a script does it. The `array`,
   `null`, `apc`, `octane` and `session` stores are never used: they are not shared with the queue worker, which would keep an old
   answer. Use redis, memcached, database or file.
+- **Two panels, one `->types([...])`.** Declaring the same type (same class, key, channels, defaults and `locked`) twice is fine, the first
+  declaration wins (labels are not compared). Two *different* declarations under one key stop the boot with an explicit message.
+- **Other `NotificationSending` listeners.** Laravel stops at the first listener that returns a non-null value. A listener registered
+  before ours that returns `true`/`false` means ours never runs; register this plugin's provider first, or return `null` from yours.
 - **Octane and queue workers.** The per-request memory is a *scoped* container binding, which Octane and the worker reset between
   requests and jobs. The type registry is filled at boot and only read afterwards.
 - **Transactions.** On PostgreSQL a failed query aborts the surrounding transaction; the listener fails open for the *notification*,

@@ -185,4 +185,26 @@ class NotificationTypeTest extends TestCase
 
         $this->assertCount(2, $registry->all());
     }
+
+    public function test_the_same_declaration_twice_is_accepted_and_the_first_stays(): void
+    {
+        $registry = new TypeRegistry;
+        $first = NotificationType::make(NewComment::class)->key('comments.new')->label('First')->channels(['mail'])->default(['mail' => false]);
+        $registry->register($first);
+        $registry->register(NotificationType::make(NewComment::class)->key('comments.new')->label('Second')->channels(['mail'])->default(['mail' => false]));
+
+        $this->assertCount(1, $registry->all());
+        $this->assertSame($first, $registry->find('comments.new'));
+    }
+
+    public function test_a_conflicting_declaration_of_one_key_gets_a_clear_error(): void
+    {
+        $registry = new TypeRegistry;
+        $registry->register(NotificationType::make(NewComment::class)->key('comments.new')->channels(['mail']));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('different declaration');
+
+        $registry->register(NotificationType::make(NewComment::class)->key('comments.new')->channels(['mail', 'database']));
+    }
 }

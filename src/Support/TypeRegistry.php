@@ -26,8 +26,15 @@ final class TypeRegistry
         foreach ($types as $type) {
             $key = $type->getKey();
 
-            if (isset($this->byKey[$key]) && $this->byKey[$key] !== $type) {
-                throw new InvalidArgumentException("The notification type key [{$key}] is already registered.");
+            $existing = $this->byKey[$key] ?? null;
+
+            if ($existing !== null && $existing !== $type) {
+                if ($existing->isSameDeclarationAs($type)) {
+                    // Declared twice identically (two panels with the same types): the first one stays.
+                    continue;
+                }
+
+                throw new InvalidArgumentException("The notification type key [{$key}] is already registered with a different declaration (class [{$existing->getClass()}], channels, defaults or locked flag differ): declare it once, or give one of them another ->key().");
             }
 
             if (isset($this->byClass[$type->getClass()]) && $this->byClass[$type->getClass()] !== $type) {

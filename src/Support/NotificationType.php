@@ -225,6 +225,19 @@ final class NotificationType
         return is_bool($this->default) ? $this->default : ($this->default[$channel] ?? true);
     }
 
+    /**
+     * The same type declared twice (two panels with the same `->types([...])`): class, key, locked flag, channels
+     * and defaults are equal. Labels and descriptions are presentation and not compared.
+     */
+    public function isSameDeclarationAs(self $other): bool
+    {
+        return $this->class === $other->class
+            && $this->getKey() === $other->getKey()
+            && $this->locked === $other->locked
+            && $this->getChannels() === $other->getChannels()
+            && array_map(fn (string $channel): bool => $this->getDefault($channel), $this->getChannels()) === array_map(fn (string $channel): bool => $other->getDefault($channel), $other->getChannels());
+    }
+
     private function resolve(string|Closure|null $value): ?string
     {
         $resolved = $value instanceof Closure ? $value() : $value;
