@@ -22,8 +22,9 @@ return [
      * The entry is dropped when the user saves the page. Only the stored deviations are cached, never the
      * defaults, so changing a default in code takes effect at once.
      *
-     * The `array` and `null` drivers are never used for this: an array store lives and dies with one process,
-     * so a long-running queue worker would keep an old answer after the web request changed it.
+     * The `array`, `null`, `apc`, `octane` and `session` drivers are never used for this: they are not shared
+     * between the web server and the queue worker (or are not a cache), so a long-running worker would keep an old
+     * answer after the web request changed it. Use a shared store: redis, memcached, database or file.
      * `store` = null means the default cache store.
      */
     'cache' => [

@@ -147,8 +147,9 @@ Use that only when "all in-app panel messages" is a choice you want to give. Oth
 
 - **`Notification::make()->sendToDatabase()` is not governed by type** (explained above).
 - **Cache.** A recipient's stored choices are cached in the default cache store for an hour and dropped when the page saves. Editing the
-  table by hand takes up to the TTL to show up; call `NotificationPreferences::for($user)->forget()` after a script does it. The `array`
-  and `null` stores are never used: an array cache lives in one process, so a long-running worker would keep an old answer.
+  table by hand takes up to the TTL to show up; call `NotificationPreferences::for($user)->forget()` after a script does it. The `array`,
+  `null`, `apc`, `octane` and `session` stores are never used: they are not shared with the queue worker, which would keep an old
+  answer. Use redis, memcached, database or file.
 - **Octane and queue workers.** The per-request memory is a *scoped* container binding, which Octane and the worker reset between
   requests and jobs. The type registry is filled at boot and only read afterwards.
 - **Transactions.** On PostgreSQL a failed query aborts the surrounding transaction; the listener fails open for the *notification*,

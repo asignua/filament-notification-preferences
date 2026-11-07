@@ -21,6 +21,9 @@ use Throwable;
  */
 final class PreferenceStore
 {
+    /** Cache drivers that are not shared between the web and the queue processes (or are not a cache at all). */
+    private const array PER_PROCESS_DRIVERS = ['array', 'null', 'apc', 'octane', 'session'];
+
     /** @var array<string, array<string, array<string, bool>>> recipient => type key => channel => enabled */
     private array $memo = [];
 
@@ -207,7 +210,7 @@ final class PreferenceStore
         $name = is_string($name) && $name !== '' ? $name : (string) config('cache.default');
         $driver = config('cache.stores.'.$name.'.driver');
 
-        if (!is_string($driver) || in_array($driver, ['array', 'null'], true)) {
+        if (!is_string($driver) || in_array($driver, self::PER_PROCESS_DRIVERS, true)) {
             return null;
         }
 

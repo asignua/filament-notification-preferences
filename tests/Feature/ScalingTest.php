@@ -11,6 +11,7 @@ use Asignua\FilamentNotificationPreferences\Tests\TestCase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Workbench\App\Notifications\InvoicePaid;
 use Workbench\App\Notifications\NewComment;
 
@@ -81,6 +82,29 @@ class ScalingTest extends TestCase
 
         $this->assertFalse((new PreferenceStore)->stored($user) === [], 'the old answer was cached after the save');
         $this->assertFalse(NotificationPreferences::for($user)->allows('comments.new', 'mail'));
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function perProcessDrivers(): array
+    {
+        return ['apc' => ['apc'], 'octane' => ['octane'], 'session' => ['session'], 'array' => ['array']];
+    }
+
+    #[DataProvider('perProcessDrivers')]
+    public function test_a_store_that_is_not_shared_between_processes_is_never_used(string $driver): void
+    {
+        config(['cache.stores.local' => ['driver' => $driver], 'filament-notification-preferences.cache.store' => 'local']);
+
+        $user = $this->makeUser();
+
+        $first = $this->preferenceQueries(fn () => NotificationPreferences::for($user)->allows(NewComment::class, 'mail'));
+        app()->forgetScopedInstances();
+        $second = $this->preferenceQueries(fn () => NotificationPreferences::for($user)->allows(NewComment::class, 'mail'));
+
+        $this->assertCount(1, $first);
+        $this->assertCount(1, $second, 'read from the database again, not from a per-process store');
     }
 
     public function test_a_per_process_cache_store_is_never_used(): void
