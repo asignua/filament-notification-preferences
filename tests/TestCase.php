@@ -4,29 +4,15 @@ declare(strict_types=1);
 
 namespace Asignua\FilamentNotificationPreferences\Tests;
 
-use Asignua\FilamentNotificationPreferences\NotificationPreferencesServiceProvider;
-use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
-use BladeUI\Icons\BladeIconsServiceProvider;
-use Filament\Actions\ActionsServiceProvider;
 use Filament\Facades\Filament;
-use Filament\FilamentServiceProvider;
-use Filament\Forms\FormsServiceProvider;
-use Filament\Infolists\InfolistsServiceProvider;
-use Filament\Notifications\NotificationsServiceProvider;
-use Filament\Schemas\SchemasServiceProvider;
-use Filament\Support\SupportServiceProvider;
-use Filament\Tables\TablesServiceProvider;
-use Filament\Widgets\WidgetsServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\LivewireServiceProvider;
-use Orchestra\Testbench\TestCase as Orchestra;
-use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Workbench\App\Models\User;
-use Workbench\App\Providers\AdminPanelProvider;
 
-abstract class TestCase extends Orchestra
+abstract class TestCase extends BaseTestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase {
+        refreshTestDatabase as protected refreshInMemoryDatabase;
+    }
 
     protected function setUp(): void
     {
@@ -36,36 +22,16 @@ abstract class TestCase extends Orchestra
         Filament::setCurrentPanel('admin');
     }
 
-    protected function getPackageProviders($app): array
+    protected function refreshTestDatabase(): void
     {
-        return [
-            ActionsServiceProvider::class,
-            BladeCaptureDirectiveServiceProvider::class,
-            BladeHeroiconsServiceProvider::class,
-            BladeIconsServiceProvider::class,
-            FilamentServiceProvider::class,
-            FormsServiceProvider::class,
-            InfolistsServiceProvider::class,
-            LivewireServiceProvider::class,
-            NotificationsServiceProvider::class,
-            SchemasServiceProvider::class,
-            SupportServiceProvider::class,
-            TablesServiceProvider::class,
-            WidgetsServiceProvider::class,
-            NotificationPreferencesServiceProvider::class,
-            AdminPanelProvider::class,
-        ];
-    }
+        if (!static::migratesItself()) {
+            $this->refreshInMemoryDatabase();
 
-    protected function defineEnvironment($app): void
-    {
-        $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('a', 32)));
-        $app['config']->set('database.default', 'testing');
-        $app['config']->set('auth.providers.users.model', User::class);
-    }
+            return;
+        }
 
-    protected function defineDatabaseMigrations(): void
-    {
-        $this->loadMigrationsFrom(__DIR__.'/../workbench/database/migrations');
+        // A real server: schema once (a no-op when it is there), then every test in a rolled-back transaction.
+        $this->migrate();
+        $this->beginDatabaseTransaction();
     }
 }

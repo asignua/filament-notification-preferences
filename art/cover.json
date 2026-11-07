@@ -1,0 +1,17 @@
+{
+    "shots": [],
+    "covers": [
+        {
+            "html": "../../scripts/art/cover.html",
+            "out": "cover.jpg",
+            "query": {
+                "eyebrow": "Plugin for Filament 5",
+                "title": "Notification Preferences",
+                "lead": "Every user picks which notifications they get and on which channel. Disabled means not sent, even for a message already waiting in the queue. Your notification classes stay untouched.",
+                "chips": "Type × channel matrix|Required types|Queue-safe|No N+1|10 languages",
+                "shot": "../../filament-notification-preferences/art/cover-source.jpg",
+                "crop": "680,380,2120,1200"
+            }
+        }
+    ]
+}

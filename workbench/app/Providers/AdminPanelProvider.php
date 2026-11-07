@@ -27,7 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->plugin(NotificationPreferencesPlugin::make())
+            ->plugin(NotificationPreferencesPlugin::make()->navigationGroup('Settings')->userMenu())
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

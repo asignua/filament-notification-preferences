@@ -1,0 +1,55 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function getConnection(): ?string
+    {
+        $connection = config('filament-notification-preferences.connection');
+
+        return is_string($connection) && $connection !== '' ? $connection : null;
+    }
+
+    private function table(): string
+    {
+        return (string) config('filament-notification-preferences.table', 'notification_preferences');
+    }
+
+    public function up(): void
+    {
+        $schema = Schema::connection($this->getConnection());
+
+        if ($schema->hasTable($this->table())) {
+            return;
+        }
+
+        $schema->create($this->table(), function (Blueprint $table): void {
+            $table->id();
+
+            // Only DEVIATIONS from the declared default are stored, so a row is "this user chose differently".
+            // The recipient is polymorphic and its key a string on purpose: integer, UUID and ULID keys all fit,
+            // and there is no foreign key because the recipient table is yours.
+            // Index key length (utf8mb4, 4 bytes per character): (255 + 64 + 150 + 150) * 4 = 2236 bytes, below the
+            // 3072 limit of InnoDB. A test guards it - SQLite would not complain.
+            $table->string('notifiable_type');
+            $table->string('notifiable_id', 64);
+            $table->string('type_key', 150);
+            $table->string('channel', 150);
+            $table->boolean('enabled');
+            $table->timestamps();
+
+            // One answer per recipient, type and channel; the unique index also serves the one-query read per recipient.
+            $table->unique(['notifiable_type', 'notifiable_id', 'type_key', 'channel'], 'np_unique');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::connection($this->getConnection())->dropIfExists($this->table());
+    }
+};

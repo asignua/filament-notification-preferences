@@ -1,0 +1,57 @@
+{
+  "base": "http://host.docker.internal:8791",
+  "login": { "path": "/admin/login", "email": "emma@example.com", "password": "password" },
+  "shots": [
+    {
+      "path": "/admin/notification-preferences",
+      "out": "matrix.jpg",
+      "theme": "light",
+      "viewport": { "width": 1440, "height": 900 },
+      "waitFor": ".npref-table",
+      "actions": [
+        { "click": "[aria-label=\"New comment, Email\"]" },
+        { "click": "[aria-label=\"Weekly digest, Email\"]" },
+        { "click": "[aria-label=\"Invoice paid, SMS\"]" },
+        { "wait": 300 }
+      ]
+    },
+    {
+      "path": "/admin/notification-preferences",
+      "out": "matrix-dark.jpg",
+      "theme": "dark",
+      "viewport": { "width": 1440, "height": 900 },
+      "waitFor": ".npref-table",
+      "actions": [
+        { "click": "[aria-label=\"New comment, Email\"]" },
+        { "click": "[aria-label=\"Weekly digest, Email\"]" },
+        { "click": "[aria-label=\"Invoice paid, SMS\"]" },
+        { "wait": 300 }
+      ]
+    },
+    {
+      "path": "/admin/notification-preferences",
+      "out": "phone.jpg",
+      "theme": "light",
+      "viewport": { "width": 390, "height": 1320 },
+      "waitFor": ".npref-table",
+      "actions": [
+        { "click": "[aria-label=\"Weekly digest, Email\"]" },
+        { "wait": 300 }
+      ]
+    },
+    {
+      "path": "/admin/notification-preferences",
+      "out": "cover-source.jpg",
+      "stamp": false,
+      "theme": "light",
+      "viewport": { "width": 1440, "height": 900 },
+      "waitFor": ".npref-table",
+      "actions": [
+        { "click": "[aria-label=\"New comment, Email\"]" },
+        { "click": "[aria-label=\"Weekly digest, Email\"]" },
+        { "click": "[aria-label=\"Invoice paid, SMS\"]" },
+        { "wait": 300 }
+      ]
+    }
+  ]
+}

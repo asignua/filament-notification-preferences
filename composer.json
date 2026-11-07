@@ -1,7 +1,15 @@
 {
     "name": "asignua/filament-notification-preferences",
-    "description": "TODO: one-sentence description of Notification Preferences for Filament.",
-    "keywords": ["filament", "filament-plugin", "laravel"],
+    "description": "Let every Filament user choose which notifications they get and on which channels, without touching the notification classes.",
+    "keywords": [
+        "filament",
+        "filament-plugin",
+        "laravel",
+        "notifications",
+        "notification-preferences",
+        "preferences",
+        "unsubscribe"
+    ],
     "homepage": "https://github.com/asignua/filament-notification-preferences",
     "support": {
         "issues": "https://github.com/asignua/filament-notification-preferences/issues",
@@ -36,7 +44,8 @@
         "psr-4": {
             "Asignua\\FilamentNotificationPreferences\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/",
-            "Workbench\\Database\\Factories\\": "workbench/database/factories/"
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
         }
     },
     "extra": {
