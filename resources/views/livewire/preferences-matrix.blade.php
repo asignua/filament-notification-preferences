@@ -72,7 +72,10 @@
                                         @php($cell = $type['channels'][$channel['name']] ?? null)
                                         <td class="npref-cell" data-label="{{ $channel['label'] }}">
                                             @if ($cell === null)
-                                                <span class="npref-na" aria-label="{{ $t('unavailable') }}" title="{{ $t('unavailable') }}">&ndash;</span>
+                                                <span class="npref-na" title="{{ $t('unavailable') }}">
+                                                    <span aria-hidden="true">&ndash;</span>
+                                                    <span class="npref-sr">{{ $t('unavailable') }}</span>
+                                                </span>
                                             @elseif ($type['locked'])
                                                 <x-filament::input.checkbox
                                                     :checked="true"

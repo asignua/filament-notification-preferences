@@ -159,7 +159,9 @@ Use that only when "all in-app panel messages" is a choice you want to give. Oth
 - **Transactions.** On PostgreSQL a failed query aborts the surrounding transaction; the listener fails open for the *notification*,
   but whatever else you do in that transaction is still aborted by the database.
 - **Case-insensitive collations** (MariaDB/MySQL default) treat the keys `Billing.Paid` and `billing.paid` as one: keep keys lower-case.
-- **Deleted users** leave their rows behind (there is no foreign key, the recipient table is yours); they are tiny and harmless.
+- **Deleted users** leave their rows behind (there is no foreign key, the recipient table is yours); they are tiny and harmless. The same goes
+  for rows of a type you stopped declaring: they are ignored (an undeclared type is sent) and never shown. Delete them yourself if you want
+  a clean table, e.g. `NotificationPreference::query()->where('type_key', 'old.key')->delete()`; if you re-declare the key later, they apply again.
 - **Digests, quiet hours, frequency, one-click unsubscribe and tenant-wide settings are out of scope.**
 
 ## Translations

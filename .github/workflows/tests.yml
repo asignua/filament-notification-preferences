@@ -25,6 +25,49 @@ jobs:
       - run: composer update --prefer-dist --no-interaction
       - run: vendor/bin/phpunit
 
+  database:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: mariadb
+            image: mariadb:11.4
+            port: 3306
+          - db: pgsql
+            image: postgres:16
+            port: 5432
+    name: ${{ matrix.db }}
+    services:
+      db:
+        image: ${{ matrix.image }}
+        ports:
+          - ${{ matrix.port }}:${{ matrix.port }}
+        env:
+          MARIADB_DATABASE: npref
+          MARIADB_USER: npref
+          MARIADB_PASSWORD: secret
+          MARIADB_ROOT_PASSWORD: secret
+          POSTGRES_DB: npref
+          POSTGRES_USER: npref
+          POSTGRES_PASSWORD: secret
+        options: >-
+          --health-cmd "${{ matrix.db == 'mariadb' && 'healthcheck.sh --connect --innodb_initialized' || 'pg_isready -U npref' }}"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, pdo_mysql, pdo_pgsql, intl
+          coverage: none
+      - run: composer update --prefer-dist --no-interaction
+      - run: vendor/bin/phpunit
+        env:
+          NPREF_DB: ${{ matrix.db }}
+          NPREF_DB_HOST: 127.0.0.1
+          NPREF_DB_PORT: ${{ matrix.port }}
+
   static:
     runs-on: ubuntu-latest
     steps:
