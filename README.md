@@ -5,7 +5,7 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/asignua/filament-notification-preferences/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/asignua/filament-notification-preferences/actions/workflows/tests.yml)
 [![License](https://img.shields.io/packagist/l/asignua/filament-notification-preferences.svg?style=flat-square)](https://github.com/asignua/filament-notification-preferences/blob/main/LICENSE.md)
 
-<img class="filament-hidden" src="https://raw.githubusercontent.com/asignua/filament-notification-preferences/main/art/cover.jpg" alt="Filament Notification Preferences">
+<img class="filament-hidden" src="https://raw.githubusercontent.com/asignua/filament-notification-preferences/v1.0.0/art/cover.jpg" alt="Filament Notification Preferences">
 
 Panel users get mails and notifications they cannot switch off, and ask the developer. This plugin adds a page where
 **every user picks, per notification type and per channel, what they receive** - without changing a single notification class.
@@ -25,9 +25,9 @@ Laravel's `NotificationSending` event then cancels what the recipient turned off
 
 ## Screenshots
 
-![The matrix](https://raw.githubusercontent.com/asignua/filament-notification-preferences/main/art/matrix.jpg)
+![The matrix](https://raw.githubusercontent.com/asignua/filament-notification-preferences/v1.0.0/art/matrix.jpg)
 
-![Dark mode](https://raw.githubusercontent.com/asignua/filament-notification-preferences/main/art/matrix-dark.jpg)
+![Dark mode](https://raw.githubusercontent.com/asignua/filament-notification-preferences/v1.0.0/art/matrix-dark.jpg)
 
 On a phone every row becomes a card whose checkboxes are labelled with their channel.
 
