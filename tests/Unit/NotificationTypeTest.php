@@ -203,7 +203,7 @@ class NotificationTypeTest extends TestCase
         $registry->register(NotificationType::make(NewComment::class)->key('comments.new')->channels(['mail']));
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('different declaration');
+        $this->expectExceptionMessageContaining('different declaration');
 
         $registry->register(NotificationType::make(NewComment::class)->key('comments.new')->channels(['mail', 'database']));
     }
