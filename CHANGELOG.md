@@ -2,6 +2,10 @@
 
 All notable changes to `asignua/filament-notification-preferences` are documented here.
 
+## v1.1.0 - 2026-11-10
+
+- Requires Filament ^5.11.2; no deprecated Filament API was in use, so no code changes.
+
 ## v1.0.0 - 2026-11-09
 
 - A notification type x channel preference matrix for Filament 5 panels: a page, an optional user-menu link
